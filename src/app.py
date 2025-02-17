@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
-#from models import Person
+from models import People, Planet, Vehicle
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -44,6 +44,79 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+@app.route('/people', methods=['GET'])
+def get_all_people():
+    try:
+        people = People.query.all()
+
+        result = [person.serialize() for person in people]
+
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/people/<int:people_id>', methods=['GET'])
+def get_person_by_id(people_id):
+    try:
+        person = People.query.get(people_id)
+
+        if not person:
+            return jsonify({"error": "Person not found"}), 404
+        
+        return jsonify(person.serialize()), 200
+    
+    except Exception as e:
+        return jsonify({"error", str(e)}), 500
+    
+@app.route('/planets', methods=['GET'])
+def get_all_planets():
+    try:
+        planets = Planet.query.all()
+
+        result = [planet.serialize() for planet in planets]
+
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def get_planet_by_id(planet_id):
+    try:
+        planet = Planet.query.get(planet_id)
+
+        if not planet:
+            return jsonify({"error": "Planet not found"}), 404
+        
+        return jsonify(planet.serialize()), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/vehicles', methods=['GET'])
+def get_all_vehicles():
+    try:
+        vehicles = Vehicle.query.all()
+
+        result = [vehicle.serialize() for vehicle in vehicles]
+
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
+def get_vehicle_by_id(vehicle_id):
+    try:
+        vehicle = Vehicle.query.get(vehicle_id)
+
+        if not vehicle:
+            return jsonify({"error": "Vehicle not found"}), 404
+        
+        return jsonify(vehicle.serialize()), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
