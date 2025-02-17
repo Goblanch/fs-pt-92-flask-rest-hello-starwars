@@ -11,6 +11,8 @@ class User(db.Model):
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
 
+    favorites = db.relationship('Favorites', backref='user', lazy=True)
+
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -34,6 +36,8 @@ class People(db.Model):
     height = db.Column(db.Integer, nullable=False)
     mass = db.Column(db.Integer, nullable=False)
     skin_color = db.Column(db.String(30), nullable=False)
+
+    favorites = db.relationship('Favorites', backref='people', lazy=True)
 
     def __repr__(self):
         return '<People %r>' % self.name
@@ -62,6 +66,8 @@ class Planet(db.Model):
     rotation_period = db.Column(db.Integer, nullable=False)
     population = db.Column(db.Integer, nullable=False)
     surface_water = db.Column(db.Boolean(), nullable=False)
+
+    favorites = db.relationship('Favorites', backref='planet', lazy=True)
 
     def __repr__(self):
         return '<Planet %r>' % self.name
@@ -93,6 +99,8 @@ class Vehicle(db.Model):
     length = db.Column(db.Integer, nullable=False)
     max_atmosphering_speed = db.Column(db.Integer, nullable=False)
 
+    favorites = db.relationship('Favorites', backref='vehicles', lazy=True)
+
     def __repr__(self):
         return '<Vehicle %r>' % self.name
     
@@ -109,5 +117,21 @@ class Vehicle(db.Model):
             "cost_in_credits": self.cost_in_credits,
             "length": self.length,
             "max_atmosphering_speed": self.max_atmosphering_speed
+        }
+    
+class Favorites(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    associated_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    people_id = db.Column(db.Integer, db.ForeignKey('people.id'))
+    planet_id = db.Column(db.Integer, db.ForeignKey('planet.id'))
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'))
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "associated_user": self.associated_user,
+            "people_id": self.people_id,
+            "planet_id": self.planet_id,
+            "vehicle_id": self.vehicle_id
         }
     
