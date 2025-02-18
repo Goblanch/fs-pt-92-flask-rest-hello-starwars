@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
-from models import People, Planet, Vehicle
+from models import People, Planet, Vehicle, Favorites
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -115,6 +115,185 @@ def get_vehicle_by_id(vehicle_id):
             return jsonify({"error": "Vehicle not found"}), 404
         
         return jsonify(vehicle.serialize()), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/users', methods=['GET'])
+def get_all_users():
+    try:
+        users = User.query.all()
+
+        result = [user.serialize() for user in users]
+
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/users/<int:user_id>/favorites', methods=['GET'])
+def get_user_favorites(user_id):
+    try:
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        favorites = Favorites.query.filter_by(associated_user=user.id)
+
+        if not favorites:
+            return jsonify({"error": "Favorites not found"}), 404
+        
+        result = [favorite.serialize() for favorite in favorites]
+
+        if not result:
+            return jsonify({"details": "user has no favorites"})
+
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/favorite/<int:user_id>/people/<int:person_id>', methods=['POST'])
+def add_person_to_favorites(user_id, person_id):
+    try:
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        person = People.query.get(person_id)
+
+        if person is None:
+            return jsonify({"error": "Person not found"}), 404
+        
+        existing_favorite = Favorites.query.filter_by(associated_user=user_id, people_id=person_id).first()
+        if existing_favorite:
+            return jsonify({"details": "This person is already in favorites"}), 200
+        
+        new_favorite = Favorites(associated_user=user_id, people_id=person_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Person added to favorites"}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/favorite/<int:user_id>/people/<int:person_id>', methods=['DELETE'])
+def delete_person_from_favorites(user_id, person_id):
+    try:
+
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        favorite = Favorites.query.filter_by(associated_user=user_id, people_id=person_id).first()
+
+        if not favorite:
+            return jsonify({"error": "Favorite not found"}), 404
+
+        db.session.delete(favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Person removed from favorites successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/favorite/<int:user_id>/planet/<int:planet_id>', methods=['POST'])
+def add_planet_to_favorites(user_id, planet_id):
+    try:
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        planet = Planet.query.get(planet_id)
+
+        if planet is None:
+            return jsonify({"error": "Planet not found"}), 404
+        
+        existing_favorite = Favorites.query.filter_by(associated_user=user_id, planet_id=planet_id).first()
+        if existing_favorite:
+            return jsonify({"details": "This planet is already in favorites"}), 200
+        
+        new_favorite = Favorites(associated_user=user_id, planet_id=planet_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Planet added to favorites"}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/favorite/<int:user_id>/planet/<int:planet_id>', methods=['DELETE'])
+def delete_planet_from_favorites(user_id, planet_id):
+    try:
+
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        favorite = Favorites.query.filter_by(associated_user=user_id, planet_id=planet_id).first()
+
+        if not favorite:
+            return jsonify({"error": "Favorite not found"}), 404
+
+        db.session.delete(favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Planet removed from favorites successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/favorite/<int:user_id>/vehicle/<int:vehicle_id>', methods=['POST'])
+def add_vehicle_to_favorites(user_id, vehicle_id):
+    try:
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        vehicle = Vehicle.query.get(vehicle_id)
+
+        if vehicle is None:
+            return jsonify({"error": "Vehicle not found"}), 404
+        
+        existing_favorite = Favorites.query.filter_by(associated_user=user_id, vehicle_id=vehicle_id).first()
+        if existing_favorite:
+            return jsonify({"details": "This vehicle is already in favorites"}), 200
+        
+        new_favorite = Favorites(associated_user=user_id, vehicle_id=vehicle_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Vehicle added to favorites"}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/favorite/<int:user_id>/vehicle/<int:vehicle_id>', methods=['DELETE'])
+def delete_vehicle_from_favorites(user_id, vehicle_id):
+    try:
+
+        user = User.query.get(user_id)
+
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        favorite = Favorites.query.filter_by(associated_user=user_id, vehicle_id=vehicle_id).first()
+
+        if not favorite:
+            return jsonify({"error": "Favorite not found"}), 404
+
+        db.session.delete(favorite)
+        db.session.commit()
+
+        return jsonify({"details": "Vehicle removed from favorites successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
